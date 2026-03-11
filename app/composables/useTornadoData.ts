@@ -26,7 +26,7 @@ export const PRESET_DATASETS: DatasetDef[] = [
     id: 'local-1950-2019',
     name: '1950–2019 (All Segments)',
     description: 'Includes per-county segments for multi-state tornadoes',
-    url: '/1950-2019_all_tornadoes.csv',
+    url: '1950-2019_all_tornadoes.csv',
     recordCount: '~66K',
     dateRange: '1950–2019',
     source: 'NOAA SPC',
@@ -35,7 +35,7 @@ export const PRESET_DATASETS: DatasetDef[] = [
     id: 'spc-1950-2024-actual',
     name: '1950–2024 (Actual Tracks)',
     description: 'One record per tornado — best for track visualization',
-    url: '/1950-2024_actual_tornadoes.csv',
+    url: '1950-2024_actual_tornadoes.csv',
     recordCount: '~72K',
     dateRange: '1950–2024',
     source: 'NOAA SPC',
@@ -44,7 +44,7 @@ export const PRESET_DATASETS: DatasetDef[] = [
     id: 'spc-1950-2024-all',
     name: '1950–2024 (All Segments)',
     description: 'Includes per-county segments for multi-state tornadoes',
-    url: '/1950-2024_all_tornadoes.csv',
+    url: '1950-2024_all_tornadoes.csv',
     recordCount: '~74K',
     dateRange: '1950–2024',
     source: 'NOAA SPC',
@@ -84,23 +84,29 @@ async function parseCsv(text: string, cacheKey: string): Promise<TornadoRecord[]
 }
 
 export function useTornadoData() {
+  const { app } = useRuntimeConfig()
+
   async function loadFromUrl(url: string): Promise<TornadoRecord[]> {
-    if (_cache.has(url)) return _cache.get(url)!
-    if (_pending.has(url)) return _pending.get(url)!
+    // Resolve project-relative paths against the app base URL so deployments
+    // to subpaths (e.g. GitHub Pages at /repo-name/) work correctly.
+    const resolvedUrl = url.startsWith('http') ? url : `${app.baseURL}${url}`
+
+    if (_cache.has(resolvedUrl)) return _cache.get(resolvedUrl)!
+    if (_pending.has(resolvedUrl)) return _pending.get(resolvedUrl)!
 
     const promise = (async () => {
-      const response = await fetch(url)
+      const response = await fetch(resolvedUrl)
       if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       const text = await response.text()
-      return parseCsv(text, url)
+      return parseCsv(text, resolvedUrl)
     })()
 
-    _pending.set(url, promise)
+    _pending.set(resolvedUrl, promise)
     try {
       const result = await promise
       return result
     } finally {
-      _pending.delete(url)
+      _pending.delete(resolvedUrl)
     }
   }
 
