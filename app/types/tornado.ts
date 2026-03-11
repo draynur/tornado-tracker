@@ -1,0 +1,31 @@
+export interface TornadoRecord {
+  om: number
+  yr: number
+  mo: number
+  dy: number
+  date: string
+  time: string
+  tz: number
+  st: string
+  stf: number
+  stn: number
+  mag: number
+  inj: number
+  fat: number
+  loss: number
+  closs: number
+  slat: number
+  slon: number
+  elat: number
+  elon: number
+  len: number
+  wid: number
+  ns: number
+  sn: number
+  sg: number
+  f1: number
+  f2: number
+  f3: number
+  f4: number
+  fc: number
+}
